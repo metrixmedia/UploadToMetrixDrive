@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+    <html xmlns="http://www.w3.org/1999/xhtml">
+      <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+        <title>Google File Upload for Custom Stationary Orders</title>
+
+        <script type="text/javascript">
+
+    // The Browser API key obtained from the Google API Console.
+    // Replace with your own Browser API key, or your own key.
+    var developerKey = 'AIzaSyDDJZuNmp5F7l8w2oZgaZMRnyciDOuBAVo';
+
+    // The Client ID obtained from the Google API Console. Replace with your own Client ID.
+    var clientId = "923669733473-pltetqr4mq5jspev8k2ogpfsf52oedp1.apps.googleusercontent.com"
+
+    // Replace with your own project number from console.developers.google.com.
+    // See "Project number" under "IAM & Admin" > "Settings"
+    var appId = "923669733473";
+
+    // Scope to use to access user's Drive items.
+    var scope = ['https://www.googleapis.com/auth/drive.file'];
+
+    var pickerApiLoaded = false;
+    var oauthToken;
+
+    // Use the Google API Loader script to load the google.picker script.
+    function loadPicker() {
+      gapi.load('auth', {'callback': onAuthApiLoad});
+      gapi.load('picker', {'callback': onPickerApiLoad});
+    }
+
+    function onAuthApiLoad() {
+      window.gapi.auth.authorize(
+          {
+            'client_id': clientId,
+            'scope': scope,
+            'immediate': false
+          },
+          handleAuthResult);
+    }
+
+    function onPickerApiLoad() {
+      pickerApiLoaded = true;
+      createPicker();
+    }
+
+    function handleAuthResult(authResult) {
+      if (authResult && !authResult.error) {
+        oauthToken = authResult.access_token;
+        createPicker();
+      }
+    }
+
+    // Create and render a Picker object for searching images.
+    function createPicker() {
+      if (pickerApiLoaded && oauthToken) {
+      //  var view = new google.picker.View(google.picker.ViewId.DOCS);
+      //  view.setMimeTypes("pdf");
+        var picker = new google.picker.PickerBuilder()
+          .enableFeature(google.picker.Feature.SUPPORT_TEAM_DRIVES)
+            // Hide list of files on the Drive
+          .enableFeature(google.picker.Feature.MINE_ONLY)
+            // Hide the Upload option for Personal Drive
+            // .enableFeature (google.picker.Feature.NAV_HIDDEN)
+            .addView(new google.picker.DocsUploadView()
+            // Custom Stationary Folder
+            .setParent('[Team Drive ID from URL]'))
+
+          .addView(new google.picker.DocsView(google.picker.ViewId.DOCS)
+            .setEnableTeamDrives(true)
+            .setSelectFolderEnabled(false)
+            // Upload files to Custom Stationary Folder
+            .setParent('0ABpefpuDWg8UUk9PVA'))
+            // Select more than one file
+            // .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+            .setAppId(appId)
+            .setOAuthToken(oauthToken)
+            // Displays Personal Drive folder
+            // .addView(view)
+
+            .setDeveloperKey(developerKey)
+            .setCallback(pickerCallback)
+            .build();
+         picker.setVisible(true);
+      }
+    }
+
+    // A simple callback implementation.
+    function pickerCallback(data) {
+      if (data.action == google.picker.Action.PICKED) {
+        var fileId = data.docs[0].name;
+          // Show the ID of the Google Drive folder
+          document.getElementById('result').innerHTML = fileId + ' has been successfully uploaded';
+      //    location.reload();
+      //  alert('The user selected: ' + fileId);
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="result"></div>
+    <div id="continue"><a href="https://drive.metrix.cf">Retour à MetrixDrive</a></div>
+
+    <!-- The Google API Loader script. -->
+    <script type="text/javascript" src="https://apis.google.com/js/api.js?onload=loadPicker"></script>
+  </body>
+</html>
